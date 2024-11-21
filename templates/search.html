@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Search Card with PID Highlight -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h4 class="card-title mb-4">Search PID Details</h4>
+                <form method="post" class="row g-3 align-items-center">
+                    <div class="col-auto flex-grow-1">
+                        <input type="text" class="form-control form-control-lg" name="pid" placeholder="Enter PID number" required>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary btn-lg">Search</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Collapsible Data Preview -->
+        {% if preview_data %}
+        <div class="card mb-4">
+            <div class="card-header" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#previewCollapse">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Data Preview</h5>
+                    <span class="text-muted">Click to expand/collapse</span>
+                </div>
+            </div>
+            <div class="collapse" id="previewCollapse">
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="max-height: 300px;">
+                        <table class="table table-bordered table-hover table-preview mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    {% for column in columns %}
+                                    <th style="background-color: #f8f9fa;">{{ column }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in preview_data %}
+                                <tr>
+                                    {% for column in columns %}
+                                    <td>{{ row[column] }}</td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Detailed Results Section -->
+        {% if result %}
+        <div class="card">
+            <div class="card-body">
+                <!-- PID Information Highlight -->
+                <div class="alert alert-primary mb-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">PID: {{ result['PID'] }}</h4>
+                        <span class="status-badge {{ 'status-paid' if result['Status']|lower == 'paid' else 'status-not-paid' }}">
+                            {{ result['Status']|upper if result['Status'] else 'NOT AVAILABLE' }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Transaction Details -->
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 border-primary">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Transaction Details</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="detail-item">
+                                    <span class="detail-label">Sr. No.:</span>
+                                    <span class="detail-value">{{ result['Sr. No.'] }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Next Working Day Date:</span>
+                                    <span class="detail-value">{{ result['Next Working Day date'] }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Initiated Date:</span>
+                                    <span class="detail-value">{{ result['Initiated Date'] }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Corporate Reference Number:</span>
+                                    <span class="detail-value">{{ result['Corporate Reference Number'] }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Batch No:</span>
+                                    <span class="detail-value">{{ result['Batch No'] }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">UTR No:</span>
+                                    <span class="detail-value">{{ result['UTR No'] }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Corporate Details -->
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 border-info">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0">Corporate Details</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="detail-item">
+                                    <span class="detail-label">Corporate Product:</span>
+                                    <span class="detail-value">{{ result['Corporate Product'] }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Corporate Account Description:</span>
+                                    <span class="detail-value">{{ result['Corporate Account Description'] }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Debit Account No:</span>
+                                    <span class="detail-value">{{ result['Debit Account No.'] }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Payment Method:</span>
+                                    <span class="detail-value">{{ result['Payment Method'] }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Amount Payable:</span>
+                                    <span class="detail-value fw-bold">₹{{ "{:,.2f}".format(result['Amount Payable']) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Beneficiary Details -->
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 border-success">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">Beneficiary Details</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="detail-item">
+                                    <span class="detail-label">Beneficiary Name:</span>
+                                    <span class="detail-value">{{ result['Bene Name'] }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Beneficiary Account No:</span>
+                                    <span class="detail-value">{{ result['Bene A/c No'] }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Beneficiary Bank:</span>
+                                    <span class="detail-value">{{ result['Bene Bank'] }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">IFSC Code:</span>
+                                    <span class="detail-value">{{ result['IFSC Code / MICR Code / IIN'] }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
