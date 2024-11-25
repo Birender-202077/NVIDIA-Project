@@ -9,7 +9,7 @@ app.secret_key = os.getenv('SECRET_KEY', 'your_default_key')
 
 
 # Configure upload folder
-UPLOAD_FOLDER = '/tmp'
+UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'xlsx'}
 
 if not os.path.exists(UPLOAD_FOLDER):
@@ -18,7 +18,7 @@ if not os.path.exists(UPLOAD_FOLDER):
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Path for metadata storage
-FILE_METADATA = '/tmp/file_metadata.json'
+FILE_METADATA = 'file_metadata.json'
 
 def save_uploaded_file(filename):
     """Save the uploaded filename persistently."""
