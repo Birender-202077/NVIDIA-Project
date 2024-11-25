@@ -7,6 +7,7 @@ import json
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
 
+
 # Configure upload folder
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'xlsx'}

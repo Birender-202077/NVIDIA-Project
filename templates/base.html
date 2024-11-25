@@ -114,10 +114,8 @@
         {% else %}
         <!-- Admin or User Dashboard (or main content) -->
         {% block content %}{% endblock %}
-
-
-
         {% endif %}
+
     </div>
 
     <!-- Bootstrap Bundle with Popper -->
@@ -154,7 +152,7 @@
 
             if (selectedRole === 'admin') {
                 if (adminPassword === 'abc') {
-                    // Use Flask's session to mark the user as logged in
+                    // Using Flask's session to mark the user as logged in
                     { { session['logged_in'] = True } }
                     return true;
                 } else {
@@ -162,7 +160,6 @@
                     return false; // Keep the form from submitting if the password is incorrect
                 }
             } else if (selectedRole === 'user') {
-                // For user, just let the form submit normally
                 { { session['logged_in'] = True } }
                 return true;
             }
