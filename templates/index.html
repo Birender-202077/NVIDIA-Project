@@ -7,17 +7,38 @@
             <div class="card-body text-center">
                 <h2 class="card-title mb-4">Welcome to PID Lookup System</h2>
                 <p class="lead mb-4">Upload your Excel file to begin searching for PID details</p>
+
+                <!-- Flash Messages for Success/Error -->
+                {% with messages = get_flashed_messages(with_categories=True) %}
+                {% if messages %}
+                <div>
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                <!-- Upload Section -->
                 <div class="upload-section">
                     <form action="{{ url_for('index') }}" method="POST" enctype="multipart/form-data" class="mb-3">
                         <div class="mb-3">
                             <input type="file" class="form-control" name="file" accept=".xlsx" required>
                         </div>
-                        <button type="submit" class="btn btn-primary btn-lg">
+                        <button type="submit" class="btn btn-primary btn-lg" id="upload-button">
                             Upload File
                         </button>
+                        <div id="loading-spinner" class="spinner-border text-primary" role="status"
+                            style="display: none;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
                     </form>
                 </div>
 
+                <!-- Additional Information -->
                 <div class="text-muted">
                     <p class="mb-1">Supported file format: .xlsx</p>
                     <p class="mb-0">Make sure your Excel file contains the PID column</p>
@@ -26,4 +47,25 @@
         </div>
     </div>
 </div>
+
+<!-- Client-Side Validation Script -->
+<script>
+    const form = document.querySelector('form');
+    const uploadButton = document.getElementById('upload-button');
+    const spinner = document.getElementById('loading-spinner');
+
+    form.addEventListener('submit', function () {
+        uploadButton.style.display = 'none';  // Hide button
+        spinner.style.display = 'block';    // Show spinner
+    });
+
+    const fileInput = document.querySelector('input[name="file"]');
+    fileInput.addEventListener('change', function () {
+        const fileName = fileInput.files[0].name;
+        if (!fileName.endsWith('.xlsx')) {
+            alert('Please upload a valid .xlsx file!');
+            fileInput.value = ''; // Reset the input
+        }
+    });
+</script>
 {% endblock %}

@@ -4,12 +4,12 @@ import os
 from werkzeug.utils import secure_filename
 import json
 
+# Initialize Flask app
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'your_default_key')
 
-
-# Configure upload folder
-UPLOAD_FOLDER = 'uploads'
+# Configure upload folder and allowed file extensions
+UPLOAD_FOLDER = os.path.abspath('uploads')
 ALLOWED_EXTENSIONS = {'xlsx'}
 
 if not os.path.exists(UPLOAD_FOLDER):
@@ -18,8 +18,9 @@ if not os.path.exists(UPLOAD_FOLDER):
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Path for metadata storage
-FILE_METADATA = 'file_metadata.json'
+FILE_METADATA = os.path.abspath('file_metadata.json')
 
+# Utility functions
 def save_uploaded_file(filename):
     """Save the uploaded filename persistently."""
     with open(FILE_METADATA, 'w') as f:
@@ -32,51 +33,53 @@ def get_uploaded_file():
             data = json.load(f)
             return data.get('uploaded_file')
     return None
-    
+
 def allowed_file(filename):
+    """Check if the file has an allowed extension."""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# Routes
 @app.route('/')
 def home():
     """Home route displaying the role selection form."""
     if session.get('logged_in'):
-        return render_template('index.html')  # Render the main content (dashboard) for logged-in users
+        return redirect(url_for('index'))  # Redirect to the dashboard if already logged in
     return render_template('base.html')
 
 @app.route('/validate', methods=['POST'])
 def validate():
+    """Validate user role and password."""
     role = request.form.get('role')
     password = request.form.get('password')
 
     if role == 'admin' and password == 'abc':
         session['logged_in'] = True
-        session['role'] = 'admin'  # Set the user's role
-        return redirect(url_for('index'))  # Redirect to the dashboard
+        session['role'] = 'admin'
+        return redirect(url_for('index'))
 
     elif role == 'user':
         session['logged_in'] = True
-        session['role'] = 'user'  # Set the user's role
-
+        session['role'] = 'user'
         filename = get_uploaded_file()
         if not filename:
             flash('No file uploaded by admin. Please contact admin.', 'error')
             return redirect(url_for('home'))
-        return redirect(url_for('search', filename=filename)) 
+        return redirect(url_for('search', filename=filename))
 
     else:
         flash("Invalid role or password", 'error')
-        return redirect(url_for('home'))  # Redirect back to login page
+        return redirect(url_for('home'))
 
 @app.route('/index', methods=['GET', 'POST'])
 def index():
-    print("Inside the /index route!")
+    """Handle file uploads for admin users."""
+    if not session.get('logged_in') or session.get('role') != 'admin':
+        flash('Access denied. Please log in as admin.', 'error')
+        return redirect(url_for('home'))
+
     if request.method == 'POST':
-        if 'file' not in request.files:
-            flash('No file selected', 'error')
-            return redirect(request.url)
-        
-        file = request.files['file']
-        if file.filename == '':
+        file = request.files.get('file')
+        if not file or file.filename == '':
             flash('No file selected', 'error')
             return redirect(request.url)
 
@@ -88,7 +91,7 @@ def index():
             flash('File uploaded successfully!', 'success')
             return redirect(url_for('search', filename=filename))
 
-        else:   
+        else:
             flash('Invalid file type. Please upload an Excel file (.xlsx)', 'error')
             return redirect(request.url)
 
@@ -96,14 +99,20 @@ def index():
 
 @app.route('/search/<filename>', methods=['GET', 'POST'])
 def search(filename):
+    """Handle PID search functionality."""
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     
     if not os.path.exists(filepath):
         flash('File not found. Please upload again.', 'error')
         return redirect(url_for('index'))
 
-    # Read the uploaded Excel file using pandas
-    df = pd.read_excel(filepath)
+    # Read the uploaded Excel file
+    try:
+        df = pd.read_excel(filepath)
+    except Exception as e:
+        flash(f'Error reading the Excel file: {str(e)}', 'error')
+        return redirect(url_for('index'))
+
     df.columns = df.columns.str.strip()
     df['PID'] = df['PID'].astype(str).str.strip()
 
@@ -121,17 +130,19 @@ def search(filename):
                 flash(f'No details found for PID: {pid}', 'error')
 
     return render_template('search.html', 
-                         filename=filename,
-                         preview_data=preview_data,
-                         columns=columns,                  
-                         result=result if result else None)
+                           filename=filename,
+                           preview_data=preview_data,
+                           columns=columns,
+                           result=result)
 
 @app.route('/logout')
 def logout():
-    session.pop('logged_in', None)  # Remove logged_in flag from session
-    session.pop('role', None)  # Remove role from session
-    flash("Logged out successfully", 'success')  # Optionally, flash a success message
-    return redirect(url_for('home'))  # Redirect to the login page
+    """Log out the user."""
+    session.pop('logged_in', None)
+    session.pop('role', None)
+    flash("Logged out successfully", 'success')
+    return redirect(url_for('home'))
 
+# Main execution
 if __name__ == '__main__':
     app.run(debug=True)
