@@ -5,11 +5,11 @@ from werkzeug.utils import secure_filename
 import json
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here'
+app.secret_key = os.getenv('SECRET_KEY', 'your_default_key')
 
 
 # Configure upload folder
-UPLOAD_FOLDER = 'uploads'
+UPLOAD_FOLDER = '/tmp'
 ALLOWED_EXTENSIONS = {'xlsx'}
 
 if not os.path.exists(UPLOAD_FOLDER):
@@ -18,7 +18,7 @@ if not os.path.exists(UPLOAD_FOLDER):
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Path for metadata storage
-FILE_METADATA = 'file_metadata.json'
+FILE_METADATA = '/tmp/file_metadata.json'
 
 def save_uploaded_file(filename):
     """Save the uploaded filename persistently."""
@@ -134,4 +134,4 @@ def logout():
     return redirect(url_for('home'))  # Redirect to the login page
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app.run(debug=True)
